@@ -1,7 +1,7 @@
 {
   "meta": {
     "lastTouchedVersion": "2026.3.13",
-    "lastTouchedAt": "2026-03-24T13:40:17.592Z"
+    "lastTouchedAt": "2026-04-09T03:47:56.068Z"
   },
   "wizard": {
     "lastRunAt": "2026-02-05T16:16:05.545Z",
@@ -232,13 +232,15 @@
   },
   "channels": {
     "feishu": {
-      "allowFrom": [],
-      "appId": "",
-      "appSecret": "",
+      "allowFrom": [
+        "ou_4980c3b68e9bf5437e830cb760e7432d"
+      ],
+      "appId": "cli_a958fba2d8389cc0",
+      "appSecret": "MWXIpbYtTurAlmvNVg9GSe6WlHirAM6Y",
       "connectionMode": "websocket",
-      "dmPolicy": "pairing",
+      "dmPolicy": "allowlist",
       "domain": "feishu",
-      "enabled": false,
+      "enabled": true,
       "groupAllowFrom": [],
       "groupPolicy": "open",
       "requireMention": true,
@@ -258,7 +260,7 @@
     },
     "auth": {
       "mode": "token",
-      "token": "0e427be7-7cff-491c-af93-0e3dd59b6f85"
+      "token": "f70f113f-0c3c-4ffb-a4a0-9d5f7d0395ec"
     },
     "trustedProxies": [
       "::1",
@@ -365,6 +367,33 @@
       },
       "wacli": {
         "enabled": false
+      },
+      "frontend-design": {
+        "enabled": true
+      },
+      "next-cache-components": {
+        "enabled": true
+      },
+      "fullstack-developer": {
+        "enabled": true
+      },
+      "frontend-code-review": {
+        "enabled": true
+      },
+      "cs-code-reviewer": {
+        "enabled": true
+      },
+      "webapp-testing-anthropic": {
+        "enabled": true
+      },
+      "pr-reviewer": {
+        "enabled": true
+      },
+      "lint": {
+        "enabled": true
+      },
+      "documentation": {
+        "enabled": true
       }
     }
   },
