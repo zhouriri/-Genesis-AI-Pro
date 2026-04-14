@@ -4,7 +4,7 @@ dotenv.config();
 
 export const config = {
   // 服务器
-  port: parseInt(process.env.PORT || "4001"),
+  port: parseInt(process.env.PORT || "4000"),
   nodeEnv: process.env.NODE_ENV || "development",
 
   // 数据库
