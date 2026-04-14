@@ -1,0 +1,102 @@
+# Dependencies
+node_modules/
+.pnp
+dist/
+dist-ssr/
+*.local
+*.tsbuildinfo
+
+# Next.js
+.next/
+out/
+build/
+.turbo/
+
+# Production
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+
+# Misc
+.DS_Store
+*.pem
+*.key
+
+# Environment variables
+.env
+.env*.local
+.env.production
+.env.test
+.env.development
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+postgres-data/
+data/
+
+# Hardhat
+/hardhat-node/
+/hardhat_cache/
+cache/
+artifacts/
+typechain-types/
+typechain/
+openzeppelin-upgrades/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.py[cod].map
+*.pyc
+.eggs/
+dist/
+downloads/
+.eggs/
+.hypothesis/
+.tox/
+.coverage/
+.coverage.*
+.cache
+.pytest_cache/
+.mypy_cache/
+dmypy.json
+dmypy_remote_cache/
+.pyrepl/
+node_modules/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+tmp/
+*.tmp
+*.bak
+*.swp
+*~
+
+# Deployments
+deployments/
+!deployments/.gitkeep
+
+# Logs
+logs/
+*.log

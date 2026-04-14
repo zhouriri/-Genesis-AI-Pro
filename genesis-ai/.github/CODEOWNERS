@@ -1,0 +1,20 @@
+# Code Owners
+
+# These owners will be the default owners for everything in the repo
+*       @zhouriri
+
+# Contracts
+/contracts/    @zhouriri @web3-experts
+
+# Frontend
+/web/          @zhouriri @frontend-team
+
+# Backend
+/api/          @zhouriri @backend-team
+
+# AI Agent
+/ai-agent/     @zhouriri @ai-team
+
+# Documentation
+/docs/         @zhouriri @docs-team
+*.md           @zhouriri

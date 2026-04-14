@@ -1,0 +1,26 @@
+# Genesis AI Pro - OpenClaw Configuration
+
+# === 运行环境（不上版本库）===
+HEARTBEAT.md
+.identity/
+logs/
+memory/
+*.log
+.bak
+.bak.*
+
+# === OpenClaw 工作区状态 ===
+.openclaw/
+
+# === IDE / OS ===
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# === 临时文件 ===
+*.tmp
+*.temp
+*.cache

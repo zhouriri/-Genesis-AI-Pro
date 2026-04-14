@@ -1,0 +1,44 @@
+# Git attributes for consistent repository behavior
+
+# Auto detect text files and perform LF normalization
+* text=auto
+
+# Source files
+*.js text
+*.jsx text
+*.ts text
+*.tsx text
+*.py text
+*.sol text
+
+# Documentation
+*.md text
+*.txt text
+*.json text
+*.yml text
+*.yaml text
+
+# Scripts
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Binary files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+
+# Archives
+*.zip binary
+*.gz binary
+*.tar binary
+
+# Node modules
+node_modules/** -text
+
+# Build outputs
+dist/** -text
+build/** -text
+.out/** -text

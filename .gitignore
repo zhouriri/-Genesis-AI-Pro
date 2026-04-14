@@ -1,8 +1,54 @@
-# 1. 忽略当前目录下的所有文件和文件夹
-/*
+# ==========================================
+# Genesis AI Pro - Global Git Ignore
+# ==========================================
 
-# 2. 只追踪配置文件、coze文件
-!/openclaw.json
-!/scripts
-!/.coze
-!/.gitignore
+# === OpenClaw 运行时（不上版本库）===
+HEARTBEAT.md
+.identity/
+identity/
+logs/
+memory/
+*.log
+
+# OpenClaw 工作区状态
+.openclaw/
+agents/
+browser/
+canvas/
+completions/
+cron/
+delivery-queue/
+devices/
+media/
+
+# === 个人运行时文件 ===
+*.bak
+*.bak.*
+update-check.json
+
+# === 系统文件 ===
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# === 临时文件 ===
+*.tmp
+*.temp
+*.cache
+
+# === 引导文件（用后即删）===
+BOOTSTRAP.md
+
+# === 待清理目录 ===
+workspace/
+
+# === 所有 node_modules（插件各自管理依赖）===
+**/node_modules/
+
+# ==========================================
+# genesis-ai 项目内部忽略
+# （在 genesis-ai/.gitignore 中管理）
+# ==========================================

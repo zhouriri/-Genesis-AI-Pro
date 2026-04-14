@@ -1,0 +1,35 @@
+{
+  "name": "genesis-ai",
+  "version": "0.1.0",
+  "description": "AI驱动的链上合成资产投资平台",
+  "keywords": [
+    "blockchain",
+    "defi",
+    "trading",
+    "ai",
+    "web3"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/genesis-ai.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "install": "npm install && npm install --prefix contracts && npm install --prefix api && npm install --prefix web",
+    "dev": "bash start.sh",
+    "stop": "bash stop.sh",
+    "build": "npm run build:contracts && npm run build:api && npm run build:web",
+    "build:contracts": "cd contracts && npm run compile",
+    "build:api": "cd api && npm run build",
+    "build:web": "cd web && npm run build",
+    "test": "cd contracts && npm test",
+    "test:coverage": "cd contracts && npm run test:coverage",
+    "clean": "rm -rf node_modules contracts/node_modules api/node_modules web/node_modules",
+    "setup": "bash dev.sh"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "author": "Genesis AI Team",
+  "contributors": []
+}

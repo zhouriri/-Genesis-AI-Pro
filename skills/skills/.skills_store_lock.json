@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "skills": {
+    "frontend-design": {
+      "name": "Frontend Design",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=frontend-design",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "next-cache-components": {
+      "name": "Next Cache Components",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=next-cache-components",
+      "source": "skillhub",
+      "version": "0.1.0"
+    },
+    "fullstack-developer": {
+      "name": "Fullstack Developer",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=fullstack-developer",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "frontend-code-review": {
+      "name": "frontend-code-review",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=frontend-code-review",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "documentation": {
+      "name": "Documentation",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=documentation",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "webapp-testing-anthropic": {
+      "name": "Webapp Testing Anthropic",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=webapp-testing-anthropic",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "pr-reviewer": {
+      "name": "pr-reviewer",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=pr-reviewer",
+      "source": "skillhub",
+      "version": "1.0.1"
+    },
+    "cs-code-reviewer": {
+      "name": "code-reviewer",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=cs-code-reviewer",
+      "source": "skillhub",
+      "version": "1.0.0"
+    },
+    "lint": {
+      "name": "Lint",
+      "zip_url": "https://lightmake.site/api/v1/download?slug=lint",
+      "source": "skillhub",
+      "version": "2.0.1"
+    }
+  }
+}
