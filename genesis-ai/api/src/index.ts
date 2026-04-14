@@ -10,7 +10,11 @@ import portfolioRouter from "./routes/portfolio";
 import pricesRouter from "./routes/prices";
 import { errorHandler } from "./middleware/errorHandler";
 import { logger } from "./utils/logger";
-import "./database/database"; // 初始化数据库
+import { initDatabase } from "./database/connection";
+import "./database/database"; // 初始化 sequelize
+
+// 初始化数据库
+initDatabase().catch(console.error);
 
 const app = express();
 
@@ -46,8 +50,8 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/strategies", strategyRouter);
 app.use("/api/v1/portfolio", portfolioRouter);
 app.use("/api/v1/prices", pricesRouter);
-app.use("/api/v1/geo-blocking", require("./routes/geo-blocking"));
-app.use("/api/v1/copy-trading", require("./routes/copy-trading"));
+app.use("/api/v1/geo-blocking", require("./routes/geo-blocking").default);
+app.use("/api/v1/copy-trading", require("./routes/copy-trading").default);
 
 // 404
 app.use((req, res) => {

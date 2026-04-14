@@ -1,157 +1,133 @@
-import db, { initDatabase } from "./database";
-
-// 初始化数据库
-try {
-  initDatabase();
-} catch (error) {
-  console.error("数据库初始化失败:", error);
-}
+/**
+ * 数据库操作层 - 基于 Sequelize ORM
+ */
+import { sequelize, User, Position, Transaction, Strategy, Signal, PriceHistory, RiskEvent } from "./database";
 
 // 用户相关操作
 export const userDb = {
-  findByWallet: (walletAddress: string) => {
-    return db.prepare("SELECT * FROM users WHERE wallet_address = ?").get(walletAddress);
+  findByWallet: async (walletAddress: string) => {
+    return await User.findOne({ where: { walletAddress } });
   },
 
-  findById: (id: string) => {
-    return db.prepare("SELECT * FROM users WHERE id = ?").get(id);
+  findById: async (id: string) => {
+    return await User.findByPk(id);
   },
 
-  create: (user: {
-    id: string;
-    wallet_address: string;
-    email?: string;
-    telegram_id?: string;
-    discord_id?: string;
-  }) => {
-    const stmt = db.prepare(`
-      INSERT INTO users (id, wallet_address, email, telegram_id, discord_id)
-      VALUES (?, ?, ?, ?, ?)
-    `);
-    return stmt.run(user.id, user.wallet_address, user.email || null, user.telegram_id || null, user.discord_id || null);
+  create: async (user: { id: string; walletAddress: string; email?: string }) => {
+    return await User.create(user);
   },
 
-  update: (id: string, updates: Record<string, any>) => {
-    const fields = Object.keys(updates).map(k => `${k} = ?`).join(", ");
-    const values = Object.values(updates);
-    return db.prepare(`UPDATE users SET ${fields}, updated_at = datetime('now') WHERE id = ?`).run(...values, id);
+  update: async (id: string, updates: Record<string, any>) => {
+    const record = await User.findByPk(id);
+    if (record) {
+      await record.update(updates);
+    }
+    return record;
   },
 
-  updateLastActive: (id: string) => {
-    return db.prepare("UPDATE users SET last_active_at = datetime('now') WHERE id = ?").run(id);
-  }
+  updateLastActive: async (id: string) => {
+    const record = await User.findByPk(id);
+    if (record) {
+      await record.update({ updatedAt: new Date() });
+    }
+  },
 };
 
 // 仓位相关操作
 export const positionDb = {
-  findByUser: (userId: string, status?: string) => {
-    if (status) {
-      return db.prepare("SELECT * FROM positions WHERE user_id = ? AND status = ?").all(userId, status);
+  findByUser: async (userId: string, status?: string) => {
+    const where: any = { userId };
+    if (status) where.status = status;
+    return await Position.findAll({ where });
+  },
+
+  findById: async (id: string) => {
+    return await Position.findByPk(id);
+  },
+
+  create: async (position: any) => {
+    return await Position.create(position);
+  },
+
+  updateStatus: async (id: string, status: string, closedBy?: string, closedReason?: string) => {
+    const record = await Position.findByPk(id);
+    if (record) {
+      await record.update({
+        status,
+        closePrice: record.getDataValue("currentPrice"),
+        closedAt: new Date(),
+      });
     }
-    return db.prepare("SELECT * FROM positions WHERE user_id = ?").all(userId);
+    return record;
   },
 
-  findById: (id: string) => {
-    return db.prepare("SELECT * FROM positions WHERE id = ?").get(id);
+  getUserSummary: async (userId: string) => {
+    const positions = await Position.findAll({ where: { userId } });
+    const openPositions = positions.filter(p => (p as any).status === "open");
+    const totalPnl = openPositions.reduce((sum, p) => sum + (Number((p as any).unrealizedPnl) || 0), 0);
+    return {
+      total_positions: positions.length,
+      open_positions: openPositions.length,
+      total_pnl: totalPnl,
+    };
   },
-
-  create: (position: Record<string, any>) => {
-    const stmt = db.prepare(`
-      INSERT INTO positions (id, user_id, position_id, asset_symbol, asset_address, side, 
-        entry_price, current_price, size, collateral, leverage, unrealized_pnl, realized_pnl,
-        status, opened_at, stop_loss_price, take_profit_price, strategy_type, transaction_hash)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    return stmt.run(
-      position.id, position.user_id, position.position_id, position.asset_symbol,
-      position.asset_address, position.side, position.entry_price, position.current_price,
-      position.size, position.collateral, position.leverage, position.unrealized_pnl,
-      position.realized_pnl, position.status, position.opened_at, position.stop_loss_price,
-      position.take_profit_price, position.strategy_type, position.transaction_hash
-    );
-  },
-
-  updateStatus: (id: string, status: string, closedBy?: string, closedReason?: string) => {
-    return db.prepare(`
-      UPDATE positions 
-      SET status = ?, closed_at = datetime('now'), closed_by = ?, closed_reason = ?
-      WHERE id = ?
-    `).run(status, closedBy || null, closedReason || null, id);
-  },
-
-  getUserSummary: (userId: string) => {
-    return db.prepare(`
-      SELECT 
-        COUNT(*) as total_positions,
-        SUM(CASE WHEN status = 'open' THEN 1 ELSE 0 END) as open_positions,
-        SUM(CASE WHEN status = 'open' THEN unrealized_pnl ELSE 0 END) as total_pnl
-      FROM positions WHERE user_id = ?
-    `).get(userId);
-  }
 };
 
 // 交易历史
 export const tradeDb = {
-  findByUser: (userId: string, limit = 50) => {
-    return db.prepare("SELECT * FROM trades WHERE user_id = ? ORDER BY timestamp DESC LIMIT ?").all(userId, limit);
+  findByUser: async (userId: string, limit = 50) => {
+    return await Transaction.findAll({
+      where: { userId },
+      order: [["createdAt", "DESC"]],
+      limit,
+    });
   },
 
-  create: (trade: Record<string, any>) => {
-    const stmt = db.prepare(`
-      INSERT INTO trades (id, user_id, position_id, trade_type, asset_symbol, side, 
-        price, size, volume, fee, slippage, executed_by, strategy_type, transaction_hash, block_number)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    return stmt.run(
-      trade.id, trade.user_id, trade.position_id, trade.trade_type, trade.asset_symbol,
-      trade.side, trade.price, trade.size, trade.volume, trade.fee, trade.slippage,
-      trade.executed_by, trade.strategy_type, trade.transaction_hash, trade.block_number
-    );
-  }
+  create: async (trade: any) => {
+    return await Transaction.create(trade);
+  },
 };
 
 // 策略信号
 export const signalDb = {
-  findLatest: (userId: string, limit = 20) => {
-    return db.prepare("SELECT * FROM strategy_signals WHERE user_id = ? ORDER BY created_at DESC LIMIT ?").all(userId, limit);
+  findLatest: async (userId: string, limit = 20) => {
+    return await Signal.findAll({
+      order: [["createdAt", "DESC"]],
+      limit,
+    });
   },
 
-  create: (signal: Record<string, any>) => {
-    const stmt = db.prepare(`
-      INSERT INTO strategy_signals (id, user_id, asset_symbol, signal_type, confidence, 
-        target_weight, urgency, reason, signal_sources, executed, execution_result)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
-    return stmt.run(
-      signal.id, signal.user_id, signal.asset_symbol, signal.signal_type,
-      signal.confidence, signal.target_weight, signal.urgency, signal.reason,
-      JSON.stringify(signal.signal_sources), signal.executed ? 1 : 0,
-      JSON.stringify(signal.execution_result)
-    );
-  }
+  create: async (signal: any) => {
+    return await Signal.create(signal);
+  },
 };
 
 // 通知
 export const notificationDb = {
-  findUnread: (userId: string) => {
-    return db.prepare("SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC").all(userId);
+  findUnread: async (userId: string) => {
+    // 占位：实际需要通知表
+    return [];
   },
 
-  create: (notification: Record<string, any>) => {
-    const stmt = db.prepare(`
-      INSERT INTO notifications (id, user_id, channel, notification_type, title, message, data)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `);
-    return stmt.run(
-      notification.id, notification.user_id, notification.channel,
-      notification.notification_type, notification.title, notification.message,
-      JSON.stringify(notification.data)
-    );
+  create: async (notification: any) => {
+    // 占位：实际需要通知表
+    return notification;
   },
 
-  markAsRead: (id: string) => {
-    return db.prepare("UPDATE notifications SET is_read = 1 WHERE id = ?").run(id);
-  }
+  markAsRead: async (id: string) => {
+    // 占位
+  },
 };
 
-export default db;
+// 初始化数据库连接
+export async function initDatabase() {
+  try {
+    await sequelize.authenticate();
+    console.log("数据库连接成功");
+    await sequelize.sync({ alter: false });
+    console.log("数据库表同步完成");
+  } catch (error) {
+    console.error("数据库初始化失败:", error);
+    throw error;
+  }
+}

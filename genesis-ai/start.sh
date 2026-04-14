@@ -35,36 +35,25 @@ if [ ! -f "web/.env.local" ]; then
     echo "✅ 创建 web/.env.local"
 fi
 
-# 启动 API
+# 构建 API（修复 TypeScript）
+echo "📦 编译 API..."
+cd api && npm run build > /dev/null 2>&1 && cd ..
+
+# 启动 API（使用 PORT=4000 避免端口冲突）
 echo "📡 启动 API 服务..."
-cd api
-DATABASE_URL=sqlite:./data/genesis.db PORT=4000 NODE_ENV=development npm run dev > ../logs/api.log 2>&1 &
+PORT=4000 node api/dist/index.js > logs/api.log 2>&1 &
 API_PID=$!
 echo "   API: http://localhost:4000 (PID: $API_PID)"
+
+# 等待 API 就绪
+sleep 3
 
 # 启动 Web
 echo ""
 echo "🌐 启动 Web 服务..."
-cd ../web
-PORT=3001 npm run dev > ../logs/web.log 2>&1 &
+cd web && PORT=3001 npm run dev > ../logs/web.log 2>&1 &
 WEB_PID=$!
 echo "   Web: http://localhost:3001 (PID: $WEB_PID)"
-
-# 启动 Telegram Bot（后台）
-cd ..
-if [ -n "$TELEGRAM_BOT_TOKEN" ]; then
-    echo ""
-    echo "📱 启动 Telegram Bot..."
-    cd telegram-bot
-    pip install -r requirements.txt -q 2>/dev/null
-    python bot.py > ../logs/bot.log 2>&1 &
-    BOT_PID=$!
-    echo "   Telegram Bot (PID: $BOT_PID)"
-fi
-
-# 启动 AI Agent（可选，默认注释掉）
-# cd ../ai-agent
-# ./start.sh > ../logs/agent.log 2>&1 &
 
 cd ..
 
@@ -81,7 +70,6 @@ echo ""
 echo "查看日志："
 echo "  API:  tail -f logs/api.log"
 echo "  Web:  tail -f logs/web.log"
-echo "  Bot:  tail -f logs/bot.log"
 echo ""
 echo "停止服务: ./stop.sh"
 echo ""

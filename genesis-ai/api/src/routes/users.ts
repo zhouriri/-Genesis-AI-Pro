@@ -6,163 +6,91 @@ import { userDb, positionDb } from "../database/connection";
 
 const router = Router();
 
-// GET /api/v1/users/me - 获取当前用户信息
+// GET /api/v1/users/me
 router.get("/me", async (req, res, next) => {
   try {
     const walletAddress = req.headers["x-wallet-address"] as string;
-    
-    if (!walletAddress) {
-      throw new AppError("需要钱包地址", 401, "UNAUTHORIZED");
-    }
+    if (!walletAddress) throw new AppError("需要钱包地址", 401, "UNAUTHORIZED");
 
-    let user = userDb.findByWallet(walletAddress) as any;
-    
+    let user: any = await userDb.findByWallet(walletAddress);
     if (!user) {
-      const newUser = {
-        id: uuid(),
-        wallet_address: walletAddress,
-        email: undefined,
-        telegram_id: undefined,
-        discord_id: undefined
-      };
-      userDb.create(newUser);
-      user = userDb.findByWallet(walletAddress) as any;
+      await userDb.create({ id: uuid(), walletAddress });
+      user = await userDb.findByWallet(walletAddress);
       logger.info("新用户创建", { walletAddress });
     }
-
-    userDb.updateLastActive(user.id);
-
+    await userDb.updateLastActive(user.id);
     res.json({ success: true, data: user });
-  } catch (error) {
-    next(error);
-  }
+  } catch (error) { next(error); }
 });
 
-// PATCH /api/v1/users/me - 更新用户配置
+// PATCH /api/v1/users/me
 router.patch("/me", async (req, res, next) => {
   try {
     const walletAddress = req.headers["x-wallet-address"] as string;
-    const { riskProfile, strategyType, email, telegramId } = req.body;
-
-    if (!walletAddress) {
-      throw new AppError("需要钱包地址", 401, "UNAUTHORIZED");
-    }
-
-    const user = userDb.findByWallet(walletAddress) as any;
-    if (!user) {
-      throw new AppError("用户不存在", 404, "USER_NOT_FOUND");
-    }
-
-    const updates: Record<string, any> = {};
-    if (riskProfile) updates.risk_profile = riskProfile;
-    if (strategyType) updates.strategy_type = strategyType;
-    if (email !== undefined) updates.email = email;
-    if (telegramId !== undefined) updates.telegram_id = telegramId;
-
-    if (Object.keys(updates).length > 0) {
-      userDb.update(user.id, updates);
-    }
-
+    if (!walletAddress) throw new AppError("需要钱包地址", 401, "UNAUTHORIZED");
+    const user: any = await userDb.findByWallet(walletAddress);
+    if (!user) throw new AppError("用户不存在", 404, "USER_NOT_FOUND");
+    const updates: any = {};
+    if (req.body.riskProfile) updates.riskProfile = req.body.riskProfile;
+    if (req.body.strategyType) updates.strategyType = req.body.strategyType;
+    if (req.body.email !== undefined) updates.email = req.body.email;
+    if (req.body.telegramId !== undefined) updates.telegramId = req.body.telegramId;
+    if (Object.keys(updates).length > 0) await userDb.update(user.id, updates);
     logger.info("用户配置更新", { walletAddress, updates });
     res.json({ success: true, data: { message: "配置更新成功" } });
-  } catch (error) {
-    next(error);
-  }
+  } catch (error) { next(error); }
 });
 
-// GET /api/v1/users/me/portfolio - 获取用户组合
+// GET /api/v1/users/me/portfolio
 router.get("/me/portfolio", async (req, res, next) => {
   try {
     const walletAddress = req.headers["x-wallet-address"] as string;
-    
-    if (!walletAddress) {
-      throw new AppError("需要钱包地址", 401, "UNAUTHORIZED");
-    }
-
-    const user = userDb.findByWallet(walletAddress) as any;
-    if (!user) {
-      throw new AppError("用户不存在", 404, "USER_NOT_FOUND");
-    }
-
-    const summary = positionDb.getUserSummary(user.id) as any;
-    const positions = positionDb.findByUser(user.id, "open") as any[];
-
+    if (!walletAddress) throw new AppError("需要钱包地址", 401, "UNAUTHORIZED");
+    const user: any = await userDb.findByWallet(walletAddress);
+    if (!user) throw new AppError("用户不存在", 404, "USER_NOT_FOUND");
+    const summary: any = await positionDb.getUserSummary(user.id);
+    const positions: any[] = await positionDb.findByUser(user.id, "open");
     res.json({
       success: true,
       data: {
-        totalValue: (summary?.total_pnl || 0) + 10000,
-        totalPnL: summary?.total_pnl || 0,
+        totalValue: (Number(summary?.total_pnl) || 0) + 10000,
+        totalPnL: Number(summary?.total_pnl) || 0,
         totalPnLPercent: 5.23,
         positions: positions.map(p => ({
-          assetSymbol: p.asset_symbol,
-          side: p.side,
-          entryPrice: p.entry_price,
-          currentPrice: p.current_price || p.entry_price,
-          size: p.size,
-          collateral: p.collateral,
-          leverage: p.leverage,
-          unrealizedPnl: p.unrealized_pnl
+          assetSymbol: p.assetSymbol, side: p.side, entryPrice: p.entryPrice,
+          currentPrice: p.currentPrice || p.entryPrice, size: p.size,
+          collateral: p.collateral, leverage: p.leverage, unrealizedPnl: p.unrealizedPnl,
         })),
-        cashBalance: 10000,
-        lastUpdated: new Date().toISOString()
-      }
+        cashBalance: 10000, lastUpdated: new Date().toISOString(),
+      },
     });
-  } catch (error) {
-    next(error);
-  }
+  } catch (error) { next(error); }
 });
 
-// GET /api/v1/users/me/positions - 获取用户仓位
+// GET /api/v1/users/me/positions
 router.get("/me/positions", async (req, res, next) => {
   try {
     const walletAddress = req.headers["x-wallet-address"] as string;
-    const { status } = req.query;
-
-    if (!walletAddress) {
-      throw new AppError("需要钱包地址", 401, "UNAUTHORIZED");
-    }
-
-    const user = userDb.findByWallet(walletAddress) as any;
-    if (!user) {
-      throw new AppError("用户不存在", 404, "USER_NOT_FOUND");
-    }
-
-    const positions = positionDb.findByUser(user.id, status as string) as any[];
-
-    res.json({
-      success: true,
-      data: { positions, total: positions.length }
-    });
-  } catch (error) {
-    next(error);
-  }
+    if (!walletAddress) throw new AppError("需要钱包地址", 401, "UNAUTHORIZED");
+    const user: any = await userDb.findByWallet(walletAddress);
+    if (!user) throw new AppError("用户不存在", 404, "USER_NOT_FOUND");
+    const positions = await positionDb.findByUser(user.id, req.query.status as string);
+    res.json({ success: true, data: { positions, total: positions.length } });
+  } catch (error) { next(error); }
 });
 
-// GET /api/v1/users/me/history - 获取交易历史
+// GET /api/v1/users/me/history
 router.get("/me/history", async (req, res, next) => {
   try {
     const walletAddress = req.headers["x-wallet-address"] as string;
+    if (!walletAddress) throw new AppError("需要钱包地址", 401, "UNAUTHORIZED");
+    const user: any = await userDb.findByWallet(walletAddress);
+    if (!user) throw new AppError("用户不存在", 404, "USER_NOT_FOUND");
     const page = parseInt(req.query.page as string || "1");
     const pageSize = parseInt(req.query.pageSize as string || "20");
-
-    if (!walletAddress) {
-      throw new AppError("需要钱包地址", 401, "UNAUTHORIZED");
-    }
-
-    const user = userDb.findByWallet(walletAddress) as any;
-    if (!user) {
-      throw new AppError("用户不存在", 404, "USER_NOT_FOUND");
-    }
-
-    const trades = positionDb.findByUser(user.id) as any[];
-
-    res.json({
-      success: true,
-      data: { trades: trades.slice(0, pageSize), total: trades.length, page, pageSize }
-    });
-  } catch (error) {
-    next(error);
-  }
+    const trades: any[] = await positionDb.findByUser(user.id);
+    res.json({ success: true, data: { trades: trades.slice(0, pageSize), total: trades.length, page, pageSize } });
+  } catch (error) { next(error); }
 });
 
 export default router;
